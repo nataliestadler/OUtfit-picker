@@ -50,3 +50,4 @@ button.onclick = async () => {
     worker.postMessage({id:++request,photo:canvas.toDataURL('image/jpeg',.85)});
   } catch(error) { status.textContent='Could not read this photo. Try a JPG or PNG.';finish(); }
 };
+

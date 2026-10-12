@@ -419,3 +419,4 @@ button:disabled { opacity:.55; cursor:wait; }
 .ai-photo { padding:12px; background:#fff1f6; border-radius:12px; }
 #ai-status { font-size:12px; line-height:1.5; }
 #ai-suggestions { display:flex; flex-wrap:wrap; gap:8px; }
+

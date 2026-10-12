@@ -58,6 +58,12 @@ function matches(i) {
 }
 const $ = id => document.getElementById(id);
 
+function localDateString(date = new Date()) {
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+$('outfit-date').value = /^\d{4}-\d{2}-\d{2}$/.test(data?.plannedDate || '') ? data.plannedDate : localDateString();
+
+
 // Save wardrobe photos, favorite looks, and the current outfit locally.
 function persist() {
   try {
@@ -67,7 +73,7 @@ function persist() {
       look,
       occasion,
       weather,
-      forecastDay: Number($('forecast-day').value)
+      plannedDate: $('outfit-date').value
     }));
     return true
   } catch {
@@ -172,7 +178,7 @@ function render() {
     const box = document.createElement('div');
     box.className = 'saved-card';
     const b = document.createElement('b');
-    b.textContent = (s.plannedDay ? s.plannedDay + ' · ' : '') + 'Look ' + (idx + 1);
+    b.textContent = (s.plannedDate ? s.plannedDate + ' · ' : s.plannedDay ? s.plannedDay + ' · ' : '') + 'Look ' + (idx + 1);
     box.append(b);
     const p = document.createElement('p');
     p.textContent = s.pieces.map(i => i.name).join(' + ');
@@ -180,6 +186,7 @@ function render() {
     const load = document.createElement('button');
     load.textContent = 'Wear again';
     load.onclick = () => {
+      if (s.plannedDate) $('outfit-date').value = s.plannedDate;
       look = {};
       s.pieces.forEach(i => {
         if (items.some(x => x.id === i.id)) look[i.cat] = i.id
@@ -285,7 +292,7 @@ $('save').onclick = () => {
   }
   saved.push({
     id: crypto.randomUUID(),
-    plannedDay: Number($('forecast-day').value) === 1 ? 'Tomorrow' : 'Today',
+    plannedDate: $('outfit-date').value,
     pieces: pieces.map(({
       id,
       name,
@@ -407,13 +414,12 @@ else render();
 // Public Open-Meteo APIs: no secret or paid AI API is needed.
 let cityResults = [],
   weatherRequest = 0;
-let forecastDay = Number(data?.forecastDay) === 1 ? 1 : 0;
-$('forecast-day').value = String(forecastDay);
-$('forecast-day').onchange = () => {
-  forecastDay = Number($('forecast-day').value);
+$('outfit-date').onchange = () => {
   ++weatherRequest;
+  weather = 'all';
   persist();
-  $('weather-status').textContent = 'Day changed. Click Use forecast & pick outfit to refresh weather for ' + (forecastDay ? 'tomorrow' : 'today') + '.';
+  render();
+  $('weather-status').textContent = 'Planning for ' + $('outfit-date').value + '. Refresh the forecast or choose weather manually, then shuffle and save your look.';
 };
 async function fetchWeatherJson(url) {
   const response = await fetch(url, {
@@ -428,7 +434,7 @@ function weatherFromForecast(current, daily, day = 0) {
   const low = daily?.apparent_temperature_min?.[day];
   const high = daily?.apparent_temperature_max?.[day];
   const temperature = day === 0 ? current.apparent_temperature : (low + high) / 2;
-  if (!Number.isFinite(temperature) || (day === 1 && (!Number.isFinite(low) || !Number.isFinite(high)))) throw new Error('Forecast is incomplete.');
+  if (!Number.isFinite(temperature) || (day > 0 && (!Number.isFinite(low) || !Number.isFinite(high)))) throw new Error('Forecast is incomplete.');
   const probability = daily?.precipitation_probability_max?.[day];
   const rainExpected = (day === 0 && (current.precipitation || 0) > 0) || (Number.isFinite(probability) && probability >= 50);
   return {
@@ -482,7 +488,7 @@ $('fetch-weather').onclick = async () => {
   if (!city) return;
   const request = ++weatherRequest;
   $('fetch-weather').disabled = true;
-  $('weather-status').textContent = 'Checking ' + (forecastDay ? 'tomorrow’s forecast…' : 'today’s weather…');
+  $('weather-status').textContent = 'Checking forecast for ' + $('outfit-date').value + '…';
   try {
     const query = new URLSearchParams({
       latitude: city.latitude,
@@ -490,14 +496,20 @@ $('fetch-weather').onclick = async () => {
       current: 'temperature_2m,apparent_temperature,precipitation',
       daily: 'precipitation_probability_max,apparent_temperature_min,apparent_temperature_max',
       timezone: 'auto',
-      forecast_days: '2'
+      forecast_days: '16'
     });
     const result = await fetchWeatherJson('https://api.open-meteo.com/v1/forecast?' + query);
     if (request !== weatherRequest) return;
+    const targetDate = $('outfit-date').value;
+    const forecastDay = result.daily?.time?.indexOf(targetDate) ?? -1;
+    if (forecastDay < 0) {
+      $('weather-status').textContent = 'No forecast available for ' + targetDate + '. Select weather manually to plan this outfit.';
+      return;
+    }
     const summary = weatherFromForecast(result.current || {}, result.daily, forecastDay);
     weather = summary.tag;
     shuffle();
-    $('weather-status').textContent = city.name + ' · ' + (forecastDay ? 'Tomorrow' : 'Today') + (summary.date ? ' (' + summary.date + ')' : '') + ': ' + (forecastDay ? 'feels-like range ' + Math.round(summary.low) + '–' + Math.round(summary.high) + '°C' : 'feels like ' + Math.round(summary.temperature) + '°C') + (Number.isFinite(summary.probability) ? ', precipitation chance up to ' + summary.probability + '%' : '') + '. Applied ' + weather + ' filter. Checked ' + new Date().toLocaleTimeString([], {
+    $('weather-status').textContent = city.name + ' · ' + targetDate + (summary.date ? ' (' + summary.date + ')' : '') + ': ' + (forecastDay ? 'feels-like range ' + Math.round(summary.low) + '–' + Math.round(summary.high) + '°C' : 'feels like ' + Math.round(summary.temperature) + '°C') + (Number.isFinite(summary.probability) ? ', precipitation chance up to ' + summary.probability + '%' : '') + '. Applied ' + weather + ' filter. Checked ' + new Date().toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit'
     }) + '. ' + (weather === 'rainy' && summary.temperature < 18 ? 'It’s also cool: consider warm layers.' : '');
@@ -513,4 +525,3 @@ $('weather').onchange = () => {
   shuffle();
   $('weather-status').textContent = 'Using your manual weather selection.';
 };
-

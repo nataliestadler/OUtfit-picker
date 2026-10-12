@@ -34,3 +34,4 @@ self.onmessage = async ({data}) => {
     self.postMessage({id:data.id,type:'error',text:'AI could not load or analyze this photo. Check your connection, try Chrome, or select the category manually.'});
   }
 };
+
