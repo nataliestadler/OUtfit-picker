@@ -1,7 +1,180 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Outfit Roulette</title><meta name="description" content="Your wardrobe, a little less indecisive. Add clothes and shuffle your next outfit."><style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
-*{box-sizing:border-box}body{margin:0;background:#fff8f6;color:#392d34;font-family:'DM Sans',sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0}header{padding:25px 6%;display:flex;justify-content:space-between;border-bottom:1px solid #eadbdc;align-items:center}.brand{font-weight:700;font-size:21px}.brand span{color:#bd547c}header small{color:#937b85}main{max-width:1150px;margin:auto;padding:45px 25px}h1,h2{font-family:'Playfair Display',Georgia,serif;font-weight:500}h1{font-size:clamp(40px,6vw,66px);margin:8px 0 12px;line-height:1.1}p{color:#8b747e;line-height:1.6}.eyebrow{font-size:11px;letter-spacing:3px;font-weight:700;color:#b65079}.intro{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:32px}.pill{border:1px solid #e4c9d3;padding:10px 16px;border-radius:25px;font-size:12px;color:#9c5473;white-space:nowrap}.workspace{display:grid;grid-template-columns:1.25fr 1fr;gap:28px}.panel{background:#fff;border:1px solid #eddee1;border-radius:24px;padding:25px}.outfit{background:#f6e5eb;position:relative}.panel h2{font-size:27px;margin:0}.topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.topline small{color:#a1808d}.slots{display:grid;grid-template-columns:1fr 1fr;gap:12px}.slot{height:195px;border-radius:18px;background:#fff9fb;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;border:1px solid #edd4df}.slot img{height:115px;width:90%;object-fit:contain}.icon{font-size:68px;line-height:1.3}.slot b{font-size:13px;margin-top:5px;max-width:85%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.slot small{font-size:10px;color:#a17f8e;text-transform:uppercase;letter-spacing:2px}.lock{position:absolute;right:9px;top:9px;border-radius:50%;background:#f5e6ed;padding:7px;font-size:12px}.lock.active{background:#ce7198;color:white}.controls{display:flex;gap:10px;margin-top:18px}.primary{background:#b94c78;color:white;border-radius:12px;padding:14px 20px;font-weight:600;flex:1}.secondary{background:white;border:1px solid #e2c9d3;border-radius:12px;padding:12px 18px;color:#8d4562}.note{font-size:12px;margin-bottom:0}.filters{display:flex;gap:7px;flex-wrap:wrap;margin:20px 0}.filter{background:#faf3f5;padding:8px 12px;border-radius:20px;font-size:12px;color:#8e7782}.filter.active{background:#392d34;color:white}.wardrobe{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-height:430px;overflow:auto}.item{background:#faf6f3;border-radius:12px;padding:12px 6px;text-align:center;position:relative}.item .icon{font-size:39px}.item img{height:65px;width:100%;object-fit:contain}.item b{font-size:11px;display:block}.item small{font-size:10px;color:#9c8490}.delete{position:absolute;top:3px;right:4px;background:transparent;color:#a89099;font-size:16px}.add{background:#fff;border:1px solid #dba7bc;border-radius:20px;padding:8px 13px;color:#a54c71;font-size:12px}.saved{margin-top:27px}.saved-grid{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px}.saved-card{background:white;border:1px solid #ead7df;border-radius:15px;padding:16px;width:220px}.saved-card p{font-size:12px;margin:8px 0}.saved-card button{background:#f6e7ee;border-radius:8px;color:#9c476b;padding:6px 10px;margin-right:5px;font-size:11px}dialog{border:1px solid #e3cad4;border-radius:22px;padding:27px;width:min(430px,90vw);color:#392d34}dialog::backdrop{background:#392d3460}form{display:grid;gap:15px}label{font-size:13px;display:grid;gap:7px}input,select{width:100%;border:1px solid #e4d4dc;padding:11px;border-radius:10px;background:#fffbfc}dialog h2{margin-top:0}footer{margin-top:35px;color:#a18a94;font-size:11px;text-align:center}#status{font-size:12px;min-height:20px;color:#94516f;margin-top:10px}@media(max-width:760px){.workspace{grid-template-columns:1fr}.intro{align-items:start;flex-direction:column}main{padding:30px 16px}.panel{padding:18px}.slot{height:170px}header small{display:none}.wardrobe{max-height:350px}}
-</style><header><div class="brand">outfit<span> roulette ✳</span></div><small>A little styling magic, just for you.</small></header><main><section class="intro"><div><div class="eyebrow">THE DAILY DRESS-UP CLUB</div><h1>Good outfits.<br>Zero overthinking.</h1><p>Your wardrobe, a little less indecisive. Let's find your next look.</p></div><div class="pill">✧ Natalie's dressing room</div></section><div class="workspace"><section class="panel outfit"><div class="topline"><h2>Today's little look</h2><small>01 / STYLE STUDIO</small></div><label style="margin-bottom:18px">Dress for<select id="occasion"><option value="all">Anything ✨</option><option value="university">University 🎓</option><option value="work">Work 💼</option><option value="gym">Gym 🏋️</option><option value="going-out">Going out 🪩</option></select></label><div class="slots" id="slots"></div><div class="controls"><button class="primary" id="shuffle">✳ Shuffle my outfit</button><button class="secondary" id="save">♡ Save look</button></div><p class="note">Love one piece? Tap its lock to keep it while you shuffle.</p><div id="status" role="status" aria-live="polite"></div></section><section class="panel"><div class="topline"><h2>The wardrobe</h2><button class="add" id="add">＋ Add a piece</button></div><p style="font-size:12px;margin:0">Start with the demo pieces, or make this closet yours.</p><div class="filters" id="filters"></div><div class="wardrobe" id="wardrobe"></div><p class="note">Photos and clothes stay in this browser on this device.</p></section></div><section class="saved"><div class="topline"><h2>Your repeat-worthy looks</h2><small id="savedcount"></small></div><div class="saved-grid" id="saved"></div></section><footer>Made for the “I have nothing to wear” moments. ♡</footer></main><dialog id="modal"><h2>A new closet crush</h2><form id="form"><label>Piece name<input id="name" placeholder="e.g. My favorite pink cardigan" maxlength="60" required></label><label>Category<select id="category"><option value="top">Top</option><option value="bottom">Bottom</option><option value="shoes">Shoes</option><option value="accessory">Accessory</option></select></label><fieldset style="border:1px solid #e4d4dc;border-radius:12px"><legend>Works for (choose any)</legend><div id="tags" style="display:flex;flex-wrap:wrap;gap:12px"></div><small>No tags = suitable for any occasion.</small></fieldset><label>Photo (optional)<input id="photo" type="file" accept="image/*"></label><div class="controls"><button type="button" class="secondary" id="cancel">Cancel</button><button class="primary" type="submit">Add to wardrobe</button></div><small id="formstatus" role="status"></small></form></dialog><script>
-const cats=['top','bottom','shoes','accessory'],icons={top:'👚',bottom:'👖',shoes:'👟',accessory:'👜'},labels={top:'Tops',bottom:'Bottoms',shoes:'Shoes',accessory:'Accessories'};const demo=[['White baby tee','top','🤍'],['Pink cardigan','top','👚'],['Classic shirt','top','👔'],['Blue jeans','bottom','👖'],['Black mini skirt','bottom','🖤'],['Cream trousers','bottom','🤎'],['Everyday sneakers','shoes','👟'],['Going-out heels','shoes','👠'],['Comfy boots','shoes','👢'],['Little pink bag','accessory','👜'],['Gold earrings','accessory','✨'],['Favorite sunnies','accessory','🕶️']].map((x,i)=>({id:'demo'+i,name:x[0],cat:x[1],emoji:x[2]}));let data;try{data=JSON.parse(localStorage.getItem('outfit-roulette-v1'))}catch{}let items=data?.items||demo,saved=data?.saved||[],look=data?.look||{},locks={},filter='all',occasion=data?.occasion||'all',editing=null;const occasions={'university':'University','work':'Work','gym':'Gym','going-out':'Going out'};function matches(i){return occasion==='all'||!i.occasions?.length||i.occasions.includes(occasion)}const $=id=>document.getElementById(id);function persist(){try{localStorage.setItem('outfit-roulette-v1',JSON.stringify({items,saved,look,occasion}));return true}catch{$('status').textContent='Your browser storage is full. Remove a few photo pieces to save more.';return false}}function visual(item,parent){if(item?.photo){const img=document.createElement('img');img.src=item.photo;img.alt=item.name;parent.append(img)}else{const e=document.createElement('div');e.className='icon';e.textContent=item?.emoji||icons[item?.cat]||'✧';parent.append(e)}}function render(){$('occasion').value=occasion;const slots=$('slots');slots.replaceChildren();cats.forEach(cat=>{const item=items.find(i=>i.id===look[cat]);const box=document.createElement('div');box.className='slot';const btn=document.createElement('button');btn.className='lock'+(locks[cat]?' active':'');btn.textContent=locks[cat]?'🔒':'🔓';btn.setAttribute('aria-label',(locks[cat]?'Unlock ':'Lock ')+cat);btn.onclick=()=>{locks[cat]=!locks[cat];render()};box.append(btn);visual(item||{cat},box);const b=document.createElement('b');b.textContent=item?.name||'Add a '+cat;box.append(b);const small=document.createElement('small');small.textContent=cat;box.append(small);slots.append(box)});const w=$('wardrobe');w.replaceChildren();items.filter(i=>(filter==='all'||i.cat===filter)&&matches(i)).forEach(item=>{const box=document.createElement('div');box.className='item';visual(item,box);const b=document.createElement('b');b.textContent=item.name;box.append(b);const small=document.createElement('small');small.textContent=labels[item.cat]+' · '+(item.occasions?.length?item.occasions.map(o=>occasions[o]).join(', '):'Any occasion');box.append(small);const del=document.createElement('button');del.className='delete';del.textContent='×';del.setAttribute('aria-label','Remove '+item.name);del.onclick=()=>{items=items.filter(i=>i.id!==item.id);if(look[item.cat]===item.id){delete look[item.cat];locks[item.cat]=false}persist();render()};const edit=document.createElement('button');edit.textContent='Edit';edit.className='filter';edit.style.marginTop='7px';edit.onclick=()=>openPiece(item);box.append(del,edit);w.append(box)});if(!w.children.length)w.textContent='Your next favorite piece goes here. Add one above!';$('filters').replaceChildren();['all',...cats].forEach(cat=>{const b=document.createElement('button');b.className='filter'+(filter===cat?' active':'');b.textContent=cat==='all'?'All pieces':labels[cat];b.onclick=()=>{filter=cat;render()};$('filters').append(b)});$('saved').replaceChildren();$('savedcount').textContent=saved.length+' saved';saved.forEach((s,idx)=>{const box=document.createElement('div');box.className='saved-card';const b=document.createElement('b');b.textContent='Look '+(idx+1);box.append(b);const p=document.createElement('p');p.textContent=s.pieces.map(i=>i.name).join(' + ');box.append(p);const load=document.createElement('button');load.textContent='Wear again';load.onclick=()=>{look={};s.pieces.forEach(i=>{if(items.some(x=>x.id===i.id))look[i.cat]=i.id});locks={};occasion='all';persist();render();$('status').textContent='Look restored. Removed pieces need a new pick.'};const del=document.createElement('button');del.textContent='Remove';del.onclick=()=>{saved=saved.filter(x=>x.id!==s.id);persist();render()};box.append(load,del);$('saved').append(box)});if(!saved.length){const p=document.createElement('p');p.textContent='Find a look you love, then tap ♡ Save look.';$('saved').append(p)}}function shuffle(){cats.forEach(cat=>{if(locks[cat]&&items.some(i=>i.id===look[cat]&&matches(i)))return;let pool=items.filter(i=>i.cat===cat&&matches(i));const other=pool.filter(i=>i.id!==look[cat]);if(other.length)pool=other;if(pool.length)look[cat]=pool[Math.floor(Math.random()*pool.length)].id;else {delete look[cat];locks[cat]=false}});persist();render();$('status').textContent=cats.some(c=>!look[c])?'No matching pieces in some categories. Add or tag clothes for this occasion.':'A fresh little look'+(occasion==='all'?'':' for '+occasions[occasion].toLowerCase())+'. ✨'}$('shuffle').onclick=shuffle;$('save').onclick=()=>{const pieces=cats.map(c=>items.find(i=>i.id===look[c])).filter(Boolean);if(!pieces.length){$('status').textContent='Add some pieces and shuffle your outfit first.';return}saved.push({id:crypto.randomUUID(),pieces:pieces.map(({id,name,cat})=>({id,name,cat}))});persist();render();$('status').textContent='Saved to your repeat-worthy looks ♡'};function openPiece(item=null){editing=item?.id||null;$('form').reset();$('name').value=item?.name||'';$('category').value=item?.cat||'top';$('tags').replaceChildren();Object.entries(occasions).forEach(([value,title])=>{const label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:5px';const input=document.createElement('input');input.type='checkbox';input.value=value;input.name='occasion-tag';input.style.width='auto';input.checked=item?.occasions?.includes(value)||false;label.append(input,document.createTextNode(title));$('tags').append(label)});$('form').querySelector('button[type=submit]').textContent=item?'Save piece':'Add to wardrobe';$('formstatus').textContent='';$('modal').showModal()}$('add').onclick=()=>openPiece();$('occasion').onchange=()=>{occasion=$('occasion').value;cats.forEach(c=>{const i=items.find(x=>x.id===look[c]);if(i&&!matches(i))locks[c]=false});shuffle()};$('cancel').onclick=()=>$('modal').close();function readPhoto(file){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{const canvas=document.createElement('canvas'),scale=Math.min(1,500/Math.max(img.width,img.height));canvas.width=img.width*scale;canvas.height=img.height*scale;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);URL.revokeObjectURL(url);resolve(canvas.toDataURL('image/jpeg',.8))};img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Please choose a supported photo, such as JPG or PNG.'))};img.src=url})}$('form').onsubmit=async e=>{e.preventDefault();const name=$('name').value.trim();if(!name)return;try{const previous=items.map(i=>({...i})),old=items.find(i=>i.id===editing),file=$('photo').files[0],photo=file?await readPhoto(file):(old?.photo||null);const item={...old,id:editing||crypto.randomUUID(),name,cat:$('category').value,photo,occasions:[...document.querySelectorAll('input[name=occasion-tag]:checked')].map(i=>i.value)};if(editing)items=items.map(i=>i.id===editing?item:i);else items.push(item);if(!persist()){items=previous;$('formstatus').textContent='Storage is full. Remove a photo piece first.';return}if(!look[item.cat])look[item.cat]=item.id;persist();render();$('modal').close();$('status').textContent='New piece added ♡'}catch(err){$('formstatus').textContent=err.message}};if(!Object.keys(look).length)shuffle();else render();
-</script></html>
-
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Outfit Roulette
+  </title>
+  <meta content="Your wardrobe, a little less indecisive. Add clothes and shuffle your next outfit." name="description"/>
+  <link href="styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header>
+   <div class="brand">
+    outfit
+    <span>
+     roulette ✳
+    </span>
+   </div>
+   <small>
+    A little styling magic, just for you.
+   </small>
+  </header>
+  <main>
+   <section class="intro">
+    <div>
+     <div class="eyebrow">
+      THE DAILY DRESS-UP CLUB
+     </div>
+     <h1>
+      Good outfits.
+      <br/>
+      Zero overthinking.
+     </h1>
+     <p>
+      Your wardrobe, a little less indecisive. Let's find your next look.
+     </p>
+    </div>
+    <div class="pill">
+     ✧ Natalie's dressing room
+    </div>
+   </section>
+   <div class="workspace">
+    <section class="panel outfit">
+     <div class="topline">
+      <h2>
+       Today's little look
+      </h2>
+      <small>
+       01 / STYLE STUDIO
+      </small>
+     </div>
+     <label style="margin-bottom:18px">
+      Dress for
+      <select id="occasion">
+       <option value="all">
+        Anything ✨
+       </option>
+       <option value="university">
+        University 🎓
+       </option>
+       <option value="work">
+        Work 💼
+       </option>
+       <option value="gym">
+        Gym 🏋️
+       </option>
+       <option value="going-out">
+        Going out 🪩
+       </option>
+      </select>
+     </label>
+     <div class="slots" id="slots">
+     </div>
+     <div class="controls">
+      <button class="primary" id="shuffle">
+       ✳ Shuffle my outfit
+      </button>
+      <button class="secondary" id="save">
+       ♡ Save look
+      </button>
+     </div>
+     <p class="note">
+      Love one piece? Tap its lock to keep it while you shuffle.
+     </p>
+     <div aria-live="polite" id="status" role="status">
+     </div>
+    </section>
+    <section class="panel">
+     <div class="topline">
+      <h2>
+       The wardrobe
+      </h2>
+      <button class="add" id="add">
+       ＋ Add a piece
+      </button>
+     </div>
+     <p style="font-size:12px;margin:0">
+      Start with the demo pieces, or make this closet yours.
+     </p>
+     <div class="filters" id="filters">
+     </div>
+     <div class="wardrobe" id="wardrobe">
+     </div>
+     <p class="note">
+      Photos and clothes stay in this browser on this device.
+     </p>
+    </section>
+   </div>
+   <section class="saved">
+    <div class="topline">
+     <h2>
+      Your repeat-worthy looks
+     </h2>
+     <small id="savedcount">
+     </small>
+    </div>
+    <div class="saved-grid" id="saved">
+    </div>
+   </section>
+   <footer>
+    Made for the “I have nothing to wear” moments. ♡
+   </footer>
+  </main>
+  <dialog id="modal">
+   <h2>
+    A new closet crush
+   </h2>
+   <form id="form">
+    <label>
+     Piece name
+     <input id="name" maxlength="60" placeholder="e.g. My favorite pink cardigan" required=""/>
+    </label>
+    <label>
+     Category
+     <select id="category">
+      <option value="top">
+       Top
+      </option>
+      <option value="bottom">
+       Bottom
+      </option>
+      <option value="shoes">
+       Shoes
+      </option>
+      <option value="accessory">
+       Accessory
+      </option>
+     </select>
+    </label>
+    <fieldset style="border:1px solid #e4d4dc;border-radius:12px">
+     <legend>
+      Works for (choose any)
+     </legend>
+     <div id="tags" style="display:flex;flex-wrap:wrap;gap:12px">
+     </div>
+     <small>
+      No tags = suitable for any occasion.
+     </small>
+    </fieldset>
+    <label>
+     Photo (optional)
+     <input accept="image/*" id="photo" type="file"/>
+    </label>
+    <div class="controls">
+     <button class="secondary" id="cancel" type="button">
+      Cancel
+     </button>
+     <button class="primary" type="submit">
+      Add to wardrobe
+     </button>
+    </div>
+    <small id="formstatus" role="status">
+    </small>
+   </form>
+  </dialog>
+  <script defer="" src="app.js">
+  </script>
+ </body>
+</html>
