@@ -400,3 +400,9 @@ footer {
     max-height: 350px
   }
 }
+
+
+/* Weather controls use compact, accessible checkbox labels. */
+.weather-tag { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+.weather-tag input { width: auto; }
+#weather { margin-bottom: 18px; }

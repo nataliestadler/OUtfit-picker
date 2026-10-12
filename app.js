@@ -44,6 +44,7 @@ let items = data?.items || demo,
   filter = 'all',
   occasion = data?.occasion || 'all',
   editing = null;
+let weather = data?.weather || 'all';
 const occasions = {
   'university': 'University',
   'work': 'Work',
@@ -53,7 +54,7 @@ const occasions = {
 
 // Untagged clothes are suitable for every occasion.
 function matches(i) {
-  return occasion === 'all' || !i.occasions?.length || i.occasions.includes(occasion)
+  return (occasion === 'all' || !i.occasions?.length || i.occasions.includes(occasion)) && (weather === 'all' || !i.weather?.length || i.weather.includes(weather));
 }
 const $ = id => document.getElementById(id);
 
@@ -64,7 +65,8 @@ function persist() {
       items,
       saved,
       look,
-      occasion
+      occasion,
+      weather
     }));
     return true
   } catch {
@@ -91,6 +93,7 @@ function visual(item, parent) {
 // Refresh outfit slots, wardrobe cards, filters, and saved looks.
 function render() {
   $('occasion').value = occasion;
+  $('weather').value = weather;
   const slots = $('slots');
   slots.replaceChildren();
   cats.forEach(cat => {
@@ -127,7 +130,7 @@ function render() {
     b.textContent = item.name;
     box.append(b);
     const small = document.createElement('small');
-    small.textContent = labels[item.cat] + ' · ' + (item.occasions?.length ? item.occasions.map(o => occasions[o]).join(', ') : 'Any occasion');
+    small.textContent = (item.color && item.color !== 'unknown' ? item.color + ' · ' : '') + (item.weather?.length ? item.weather.join(', ') + ' · ' : '') + labels[item.cat] + ' · ' + (item.occasions?.length ? item.occasions.map(o => occasions[o]).join(', ') : 'Any occasion');
     box.append(small);
     const del = document.createElement('button');
     del.className = 'delete';
@@ -182,6 +185,7 @@ function render() {
       });
       locks = {};
       occasion = 'all';
+      weather = 'all';
       persist();
       render();
       $('status').textContent = 'Look restored. Removed pieces need a new pick.'
@@ -204,21 +208,72 @@ function render() {
 }
 
 // Pick matching clothes, respecting compatible locked pieces.
+// Score simple color combinations. Unknown colors never exclude a piece.
+const neutralColors = new Set(['black', 'white', 'gray', 'cream', 'brown', 'navy']);
+const colorHues = {
+  red: 0,
+  orange: 30,
+  yellow: 60,
+  green: 120,
+  blue: 220,
+  purple: 280,
+  pink: 330
+};
+
+function colorScore(a, b) {
+  if (!a || !b || a === 'unknown' || b === 'unknown') return 0;
+  if (a === b) return 2;
+  if (neutralColors.has(a) || neutralColors.has(b)) return 3;
+  let distance = Math.abs(colorHues[a] - colorHues[b]);
+  distance = Math.min(distance, 360 - distance);
+  if (distance <= 65) return 2;
+  if (distance >= 150) return 1;
+  return -1;
+}
+
+function outfitScore(candidate) {
+  const pieces = cats.map(c => items.find(i => i.id === candidate[c])).filter(Boolean);
+  let score = 0;
+  for (let i = 0; i < pieces.length; i++) {
+    for (let k = i + 1; k < pieces.length; k++) score += colorScore(pieces[i].color, pieces[k].color);
+  }
+  return score;
+}
+
 function shuffle() {
-  cats.forEach(cat => {
-    if (locks[cat] && items.some(i => i.id === look[cat] && matches(i))) return;
-    let pool = items.filter(i => i.cat === cat && matches(i));
-    const other = pool.filter(i => i.id !== look[cat]);
-    if (other.length) pool = other;
-    if (pool.length) look[cat] = pool[Math.floor(Math.random() * pool.length)].id;
-    else {
-      delete look[cat];
-      locks[cat] = false
+  const previous = {
+    ...look
+  };
+  let best = {},
+    bestScore = -Infinity;
+  // Sample several matching outfits and prefer coordinated colors.
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const candidate = {};
+    cats.forEach(cat => {
+      const locked = items.find(i => i.id === previous[cat] && i.cat === cat && matches(i));
+      if (locks[cat] && locked) {
+        candidate[cat] = locked.id;
+        return;
+      }
+      const pool = items.filter(i => i.cat === cat && matches(i));
+      if (pool.length) candidate[cat] = pool[Math.floor(Math.random() * pool.length)].id;
+    });
+    const unchanged = cats.every(c => candidate[c] === previous[c]);
+    const score = outfitScore(candidate) + (unchanged ? -0.25 : 0) + Math.random() * 0.2;
+    if (score > bestScore) {
+      best = candidate;
+      bestScore = score;
     }
+  }
+  look = best;
+  cats.forEach(c => {
+    if (!look[c]) locks[c] = false;
   });
   persist();
   render();
-  $('status').textContent = cats.some(c => !look[c]) ? 'No matching pieces in some categories. Add or tag clothes for this occasion.' : 'A fresh little look' + (occasion === 'all' ? '' : ' for ' + occasions[occasion].toLowerCase()) + '. ✨'
+  $('status').textContent = cats.some(c => !look[c]) ?
+    'Some categories have no matching clothes. Add pieces or adjust their occasion and weather tags.' :
+    'A color-coordinated suggestion. Untagged pieces are included; you make the final call. ✨';
 }
 $('shuffle').onclick = shuffle;
 $('save').onclick = () => {
@@ -250,6 +305,10 @@ function openPiece(item = null) {
   $('form').reset();
   $('name').value = item?.name || '';
   $('category').value = item?.cat || 'top';
+  $('color').value = item?.color || 'unknown';
+  document.querySelectorAll('input[name=weather-tag]').forEach(input => {
+    input.checked = item?.weather?.includes(input.value) || false;
+  });
   $('tags').replaceChildren();
   Object.entries(occasions).forEach(([value, title]) => {
     const label = document.createElement('label');
@@ -275,6 +334,10 @@ $('occasion').onchange = () => {
     if (i && !matches(i)) locks[c] = false
   });
   shuffle()
+};
+$('weather').onchange = () => {
+  weather = $('weather').value;
+  shuffle();
 };
 $('cancel').onclick = () => $('modal').close();
 
@@ -316,6 +379,8 @@ $('form').onsubmit = async e => {
       name,
       cat: $('category').value,
       photo,
+      color: $('color').value,
+      weather: [...document.querySelectorAll('input[name=weather-tag]:checked')].map(i => i.value),
       occasions: [...document.querySelectorAll('input[name=occasion-tag]:checked')].map(i => i.value)
     };
     if (editing) items = items.map(i => i.id === editing ? item : i);
