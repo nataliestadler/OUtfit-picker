@@ -89,6 +89,17 @@
      </label>
      <div class="live-weather">
       <label>
+       Plan an outfit for
+       <select id="forecast-day">
+        <option value="0">
+         Today
+        </option>
+        <option value="1">
+         Tomorrow
+        </option>
+       </select>
+      </label>
+      <label>
        Check your city
        <input id="weather-city" maxlength="80" placeholder="City name" value="Linz"/>
       </label>
@@ -101,7 +112,7 @@
        </select>
       </label>
       <button class="secondary" hidden="" id="fetch-weather" type="button">
-       Use today’s weather
+       Use forecast &amp; pick outfit
       </button>
       <p aria-live="polite" class="note" id="weather-status" role="status">
        Find your city, then choose the correct location.
@@ -128,7 +139,7 @@
       Love one piece? Tap its lock to keep it while you shuffle.
      </p>
      <p class="note">
-      Color suggestions use your tags. Set weather manually or look up today’s conditions for your city.
+      Choose Today or Tomorrow, then look up your city’s weather to plan an outfit.
      </p>
      <div aria-live="polite" id="status" role="status">
      </div>

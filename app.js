@@ -66,7 +66,8 @@ function persist() {
       saved,
       look,
       occasion,
-      weather
+      weather,
+      forecastDay: Number($('forecast-day').value)
     }));
     return true
   } catch {
@@ -171,7 +172,7 @@ function render() {
     const box = document.createElement('div');
     box.className = 'saved-card';
     const b = document.createElement('b');
-    b.textContent = 'Look ' + (idx + 1);
+    b.textContent = (s.plannedDay ? s.plannedDay + ' · ' : '') + 'Look ' + (idx + 1);
     box.append(b);
     const p = document.createElement('p');
     p.textContent = s.pieces.map(i => i.name).join(' + ');
@@ -284,6 +285,7 @@ $('save').onclick = () => {
   }
   saved.push({
     id: crypto.randomUUID(),
+    plannedDay: Number($('forecast-day').value) === 1 ? 'Tomorrow' : 'Today',
     pieces: pieces.map(({
       id,
       name,
@@ -405,6 +407,14 @@ else render();
 // Public Open-Meteo APIs: no secret or paid AI API is needed.
 let cityResults = [],
   weatherRequest = 0;
+let forecastDay = Number(data?.forecastDay) === 1 ? 1 : 0;
+$('forecast-day').value = String(forecastDay);
+$('forecast-day').onchange = () => {
+  forecastDay = Number($('forecast-day').value);
+  ++weatherRequest;
+  persist();
+  $('weather-status').textContent = 'Day changed. Click Use forecast & pick outfit to refresh weather for ' + (forecastDay ? 'tomorrow' : 'today') + '.';
+};
 async function fetchWeatherJson(url) {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(15000)
@@ -413,15 +423,21 @@ async function fetchWeatherJson(url) {
   return response.json();
 }
 
-function weatherFromForecast(current, daily) {
-  const temperature = current.apparent_temperature;
-  if (!Number.isFinite(temperature)) throw new Error('Weather data is incomplete.');
-  const probability = daily?.precipitation_probability_max?.[0];
-  const rainExpected = (current.precipitation || 0) > 0 || (Number.isFinite(probability) && probability >= 50);
+// Tomorrow uses the daily feels-like range in the selected city's timezone.
+function weatherFromForecast(current, daily, day = 0) {
+  const low = daily?.apparent_temperature_min?.[day];
+  const high = daily?.apparent_temperature_max?.[day];
+  const temperature = day === 0 ? current.apparent_temperature : (low + high) / 2;
+  if (!Number.isFinite(temperature) || (day === 1 && (!Number.isFinite(low) || !Number.isFinite(high)))) throw new Error('Forecast is incomplete.');
+  const probability = daily?.precipitation_probability_max?.[day];
+  const rainExpected = (day === 0 && (current.precipitation || 0) > 0) || (Number.isFinite(probability) && probability >= 50);
   return {
     tag: rainExpected ? 'rainy' : temperature >= 18 ? 'warm' : 'cold',
     temperature,
-    probability
+    probability,
+    low,
+    high,
+    date: daily?.time?.[day]
   };
 }
 $('find-city').onclick = async () => {
@@ -454,7 +470,7 @@ $('find-city').onclick = async () => {
     });
     $('city-choice-label').hidden = !cityResults.length;
     $('fetch-weather').hidden = !cityResults.length;
-    $('weather-status').textContent = cityResults.length ? 'Choose the correct city, then use today’s weather.' : 'No cities found. Try a nearby city or another spelling.';
+    $('weather-status').textContent = cityResults.length ? 'Choose the correct city, then click Use forecast & pick outfit.' : 'No cities found. Try a nearby city or another spelling.';
   } catch (error) {
     if (request === weatherRequest) $('weather-status').textContent = 'Could not find cities. Check your connection and try again. Manual weather still works.';
   } finally {
@@ -466,22 +482,22 @@ $('fetch-weather').onclick = async () => {
   if (!city) return;
   const request = ++weatherRequest;
   $('fetch-weather').disabled = true;
-  $('weather-status').textContent = 'Checking today’s weather…';
+  $('weather-status').textContent = 'Checking ' + (forecastDay ? 'tomorrow’s forecast…' : 'today’s weather…');
   try {
     const query = new URLSearchParams({
       latitude: city.latitude,
       longitude: city.longitude,
       current: 'temperature_2m,apparent_temperature,precipitation',
-      daily: 'precipitation_probability_max',
+      daily: 'precipitation_probability_max,apparent_temperature_min,apparent_temperature_max',
       timezone: 'auto',
-      forecast_days: '1'
+      forecast_days: '2'
     });
     const result = await fetchWeatherJson('https://api.open-meteo.com/v1/forecast?' + query);
     if (request !== weatherRequest) return;
-    const summary = weatherFromForecast(result.current || {}, result.daily);
+    const summary = weatherFromForecast(result.current || {}, result.daily, forecastDay);
     weather = summary.tag;
     shuffle();
-    $('weather-status').textContent = city.name + ': feels like ' + Math.round(summary.temperature) + '°C' + (Number.isFinite(summary.probability) ? ', today’s precipitation chance up to ' + summary.probability + '%' : '') + '. Applied ' + weather + ' filter. Checked ' + new Date().toLocaleTimeString([], {
+    $('weather-status').textContent = city.name + ' · ' + (forecastDay ? 'Tomorrow' : 'Today') + (summary.date ? ' (' + summary.date + ')' : '') + ': ' + (forecastDay ? 'feels-like range ' + Math.round(summary.low) + '–' + Math.round(summary.high) + '°C' : 'feels like ' + Math.round(summary.temperature) + '°C') + (Number.isFinite(summary.probability) ? ', precipitation chance up to ' + summary.probability + '%' : '') + '. Applied ' + weather + ' filter. Checked ' + new Date().toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit'
     }) + '. ' + (weather === 'rainy' && summary.temperature < 18 ? 'It’s also cool: consider warm layers.' : '');
