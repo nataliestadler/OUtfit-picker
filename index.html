@@ -7,7 +7,7 @@
    Outfit Roulette
   </title>
   <meta content="Your wardrobe, a little less indecisive. Add clothes and shuffle your next outfit." name="description"/>
-  <link href="styles.css" rel="stylesheet"/>
+  <link href="styles.css?v=ai1" rel="stylesheet"/>
  </head>
  <body>
   <header>
@@ -287,6 +287,18 @@
      Photo (optional)
      <input accept="image/*" id="photo" type="file"/>
     </label>
+    <section class="ai-photo">
+     <button class="secondary" id="analyze-photo" type="button">
+      ✧ Analyze photo with free AI
+     </button>
+     <p class="note">
+      Choose a photo first. The first analysis downloads a large model and may take several minutes. Photos are analyzed on your device, not sent to an AI server. Review suggestions before saving.
+     </p>
+     <p aria-live="polite" id="ai-status" role="status">
+     </p>
+     <div id="ai-suggestions">
+     </div>
+    </section>
     <div class="controls">
      <button class="secondary" id="cancel" type="button">
       Cancel
@@ -299,7 +311,9 @@
     </small>
    </form>
   </dialog>
-  <script defer="" src="app.js">
+  <script defer="" src="app.js?v=ai1">
+  </script>
+  <script src="ai-photo.js?v=ai1" type="module">
   </script>
  </body>
 </html>

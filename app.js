@@ -513,3 +513,4 @@ $('weather').onchange = () => {
   shuffle();
   $('weather-status').textContent = 'Using your manual weather selection.';
 };
+
