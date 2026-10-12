@@ -87,6 +87,33 @@
        </option>
       </select>
      </label>
+     <div class="live-weather">
+      <label>
+       Check your city
+       <input id="weather-city" maxlength="80" placeholder="City name" value="Linz"/>
+      </label>
+      <button class="secondary" id="find-city" type="button">
+       Find city
+      </button>
+      <label hidden="" id="city-choice-label">
+       Choose your location
+       <select id="city-choice">
+       </select>
+      </label>
+      <button class="secondary" hidden="" id="fetch-weather" type="button">
+       Use today’s weather
+      </button>
+      <p aria-live="polite" class="note" id="weather-status" role="status">
+       Find your city, then choose the correct location.
+      </p>
+      <small>
+       Weather by
+       <a href="https://open-meteo.com/" rel="noopener" target="_blank">
+        Open-Meteo
+       </a>
+       . City searches are sent to this service. No GPS access.
+      </small>
+     </div>
      <div class="slots" id="slots">
      </div>
      <div class="controls">
@@ -101,7 +128,7 @@
       Love one piece? Tap its lock to keep it while you shuffle.
      </p>
      <p class="note">
-      Color suggestions use your chosen tags. Weather is selected manually; no location or forecast is fetched.
+      Color suggestions use your tags. Set weather manually or look up today’s conditions for your city.
      </p>
      <div aria-live="polite" id="status" role="status">
      </div>

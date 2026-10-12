@@ -406,3 +406,10 @@ footer {
 .weather-tag { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
 .weather-tag input { width: auto; }
 #weather { margin-bottom: 18px; }
+
+.live-weather { background: #fff8fb; border: 1px solid #ead4df; border-radius: 14px; padding: 14px; margin-bottom: 18px; }
+.live-weather button { margin-top: 10px; }
+.live-weather small { display:block; color:#947582; margin-top:10px; font-size:11px; }
+.live-weather a { color: #a54c71; }
+[hidden] { display:none !important; }
+button:disabled { opacity:.55; cursor:wait; }

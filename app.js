@@ -401,3 +401,99 @@ $('form').onsubmit = async e => {
 };
 if (!Object.keys(look).length) shuffle();
 else render();
+
+// Public Open-Meteo APIs: no secret or paid AI API is needed.
+let cityResults = [],
+  weatherRequest = 0;
+async function fetchWeatherJson(url) {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!response.ok) throw new Error('Weather service unavailable. Please try again later.');
+  return response.json();
+}
+
+function weatherFromForecast(current, daily) {
+  const temperature = current.apparent_temperature;
+  if (!Number.isFinite(temperature)) throw new Error('Weather data is incomplete.');
+  const probability = daily?.precipitation_probability_max?.[0];
+  const rainExpected = (current.precipitation || 0) > 0 || (Number.isFinite(probability) && probability >= 50);
+  return {
+    tag: rainExpected ? 'rainy' : temperature >= 18 ? 'warm' : 'cold',
+    temperature,
+    probability
+  };
+}
+$('find-city').onclick = async () => {
+  const name = $('weather-city').value.trim();
+  if (name.length < 2) {
+    $('weather-status').textContent = 'Enter at least two letters of your city.';
+    return;
+  }
+  const request = ++weatherRequest;
+  $('find-city').disabled = true;
+  $('fetch-weather').hidden = true;
+  $('city-choice-label').hidden = true;
+  $('weather-status').textContent = 'Finding cities…';
+  try {
+    const query = new URLSearchParams({
+      name,
+      count: '8',
+      language: 'en',
+      format: 'json'
+    });
+    const result = await fetchWeatherJson('https://geocoding-api.open-meteo.com/v1/search?' + query);
+    if (request !== weatherRequest) return;
+    cityResults = result.results || [];
+    $('city-choice').replaceChildren();
+    cityResults.forEach((city, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = [city.name, city.admin1, city.country].filter(Boolean).join(', ');
+      $('city-choice').append(option);
+    });
+    $('city-choice-label').hidden = !cityResults.length;
+    $('fetch-weather').hidden = !cityResults.length;
+    $('weather-status').textContent = cityResults.length ? 'Choose the correct city, then use today’s weather.' : 'No cities found. Try a nearby city or another spelling.';
+  } catch (error) {
+    if (request === weatherRequest) $('weather-status').textContent = 'Could not find cities. Check your connection and try again. Manual weather still works.';
+  } finally {
+    $('find-city').disabled = false;
+  }
+};
+$('fetch-weather').onclick = async () => {
+  const city = cityResults[Number($('city-choice').value)];
+  if (!city) return;
+  const request = ++weatherRequest;
+  $('fetch-weather').disabled = true;
+  $('weather-status').textContent = 'Checking today’s weather…';
+  try {
+    const query = new URLSearchParams({
+      latitude: city.latitude,
+      longitude: city.longitude,
+      current: 'temperature_2m,apparent_temperature,precipitation',
+      daily: 'precipitation_probability_max',
+      timezone: 'auto',
+      forecast_days: '1'
+    });
+    const result = await fetchWeatherJson('https://api.open-meteo.com/v1/forecast?' + query);
+    if (request !== weatherRequest) return;
+    const summary = weatherFromForecast(result.current || {}, result.daily);
+    weather = summary.tag;
+    shuffle();
+    $('weather-status').textContent = city.name + ': feels like ' + Math.round(summary.temperature) + '°C' + (Number.isFinite(summary.probability) ? ', today’s precipitation chance up to ' + summary.probability + '%' : '') + '. Applied ' + weather + ' filter. Checked ' + new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    }) + '. ' + (weather === 'rainy' && summary.temperature < 18 ? 'It’s also cool: consider warm layers.' : '');
+  } catch (error) {
+    if (request === weatherRequest) $('weather-status').textContent = 'Weather lookup failed. Your previous filter is unchanged; you can select weather manually.';
+  } finally {
+    $('fetch-weather').disabled = false;
+  }
+};
+$('weather').onchange = () => {
+  ++weatherRequest;
+  weather = $('weather').value;
+  shuffle();
+  $('weather-status').textContent = 'Using your manual weather selection.';
+};
